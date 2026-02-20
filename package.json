@@ -1,0 +1,22 @@
+{
+  "name": "cs2-rcon-dashboard",
+  "version": "1.0.0",
+  "description": "CS2 Server RCON Management Dashboard",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo No build step required - static HTML",
+    "start": "echo Static site - deploy to Vercel"
+  },
+  "keywords": [
+    "cs2",
+    "counter-strike",
+    "rcon",
+    "dashboard",
+    "server-management"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "simple-rcon": "^0.3.1"
+  }
+}

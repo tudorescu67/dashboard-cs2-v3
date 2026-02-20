@@ -1,0 +1,161 @@
+// ============================================
+// CS2 Server Configuration Example
+// ============================================
+
+// Server Info
+hostname "My CS2 Server | Romania | VIP/Admin Available"
+sv_password ""  // Leave empty for public, set password for private
+
+// RCON Settings (IMPORTANT!)
+rcon_password "CHANGE_THIS_PASSWORD_NOW"  // ⚠️ CHANGE THIS!
+sv_rcon_whitelist_address "0.0.0.0/0"     // Allow RCON from anywhere (INSECURE - change in production!)
+
+// Server Settings
+sv_lan 0                    // 0 = Internet server, 1 = LAN server
+sv_cheats 0                 // No cheats
+sv_pure 1                   // Force pure server
+sv_pure_kick_clients 1      // Kick clients with modified files
+
+// Game Settings
+mp_teamcashawards 1
+mp_playercashawards 1
+mp_maxmoney 16000
+mp_startmoney 800
+mp_roundtime 1.92           // Round time in minutes
+mp_roundtime_defuse 1.92
+mp_roundtime_hostage 1.92
+mp_freezetime 15            // Freeze time at round start
+mp_buytime 45               // Buy time in seconds
+mp_buy_anywhere 0
+mp_buy_during_immunity 0
+
+// Team Settings
+mp_autoteambalance 1
+mp_limitteams 1
+mp_maxrounds 30             // Max rounds before map change
+mp_overtime_enable 1
+mp_overtime_maxrounds 6
+
+// Voice & Chat
+sv_voiceenable 1
+sv_alltalk 0                // 0 = team only, 1 = everyone
+sv_deadtalk 0               // Dead players can't talk to alive
+sv_full_alltalk 0
+
+// Server Performance
+sv_maxrate 0                // 0 = unlimited
+sv_minrate 128000
+sv_maxcmdrate 128
+sv_mincmdrate 64
+sv_maxupdaterate 128
+sv_minupdaterate 64
+sv_client_predict 1
+sv_client_cmdrate_difference 0
+
+// Network Settings
+sv_lan 0
+sv_region 3                 // 0=US East, 1=US West, 2=South America, 3=Europe, 4=Asia, 5=Australia, 6=Middle East, 7=Africa
+sv_steamgroup ""            // Steam group ID (optional)
+sv_steamgroup_exclusive 0
+
+// Logging
+log on
+sv_logfile 1
+sv_log_onefile 0
+sv_logecho 1
+sv_logflush 0
+sv_logsdir "logs"
+
+// Download Settings
+sv_allowdownload 1
+sv_allowupload 1
+net_maxfilesize 64
+
+// Pause Settings
+sv_pausable 1
+sv_allow_votes 1            // Allow voting
+sv_vote_issue_kick_allowed 1
+sv_vote_issue_pause_match_allowed 1
+
+// Competitive Settings (uncomment if needed)
+// game_type 0
+// game_mode 1
+// mp_competitive_endofmatch_extra_time 15
+
+// Warmup
+mp_warmuptime 60
+mp_warmup_pausetimer 0
+mp_do_warmup_period 1
+mp_warmup_end
+
+// Drop Settings
+mp_death_drop_gun 1
+mp_death_drop_grenade 2     // 0=none, 1=best, 2=current or best
+mp_death_drop_defuser 1
+mp_death_drop_healthshot 1
+mp_drop_knife_enable 0
+
+// Damage Settings
+ff_damage_reduction_bullets 0.33
+ff_damage_reduction_grenade 0.85
+ff_damage_reduction_other 0.4
+mp_friendlyfire 1
+mp_tkpunish 0
+
+// Spectator Settings
+mp_forcecamera 1            // 0=free, 1=team only, 2=fade to black
+mp_spectators_max 20
+tv_enable 0                 // GOTV (1 to enable)
+
+// Misc Settings
+mp_solid_teammates 1
+mp_free_armor 0
+mp_defuser_allocation 0     // 0=random, 1=ct spawn with, 2=all ct spawn with
+mp_weapons_allow_zeus 1
+mp_weapons_allow_typecount -1
+mp_display_kill_assists 1
+
+// ============================================
+// Admin & VIP Settings (requires SourceMod)
+// ============================================
+
+// These will work after installing SourceMod
+// Check README.md for installation instructions
+
+// Server Tags (appears in server browser)
+sv_tags "vip,admin,romania,competitive,128tick"
+
+// MOTD (Message of the Day)
+motdfile "motd.txt"
+motd_enabled 1
+
+// ============================================
+// Custom Commands
+// ============================================
+
+// Add your custom exec commands here
+// exec banned_user.cfg
+// exec banned_ip.cfg
+
+// ============================================
+// Map Groups & Rotation
+// ============================================
+
+// Workshop map collection (optional)
+// host_workshop_collection "YOUR_COLLECTION_ID"
+// workshop_start_map "YOUR_MAP_ID"
+
+// Mapgroup settings
+mapgroup mg_active
+map de_dust2  // Starting map
+
+// ============================================
+// End of Configuration
+// ============================================
+
+echo "================================"
+echo "CS2 Server Config Loaded!"
+echo "RCON: Enabled"
+echo "Hostname: My CS2 Server"
+echo "⚠️ Remember to change RCON password!"
+echo "================================"

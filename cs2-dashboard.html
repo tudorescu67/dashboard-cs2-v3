@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Server Dashboard - RCON Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff4655;
+            --primary-dark: #cc1f2d;
+            --secondary: #00d4ff;
+            --bg-dark: #0a0e1a;
+            --bg-card: #141929;
+            --bg-card-hover: #1a2035;
+            --text: #e0e6f0;
+            --text-dim: #8891a8;
+            --success: #00ff88;
+            --warning: #ffa600;
+            --border: #2a3347;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 70, 85, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 0.5rem;
+            animation: glitch 3s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 70, 85, 0.5); }
+            50% { text-shadow: 0 0 30px rgba(0, 212, 255, 0.5); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            font-weight: 400;
+            letter-spacing: 2px;
+        }
+
+        .status-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+
+        .status-dot.disconnected {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 30px rgba(255, 70, 85, 0.2);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .input-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.9rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 70, 85, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), #0099cc);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #00cc66);
+        }
+
+        .output {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--success);
+            margin-top: 1rem;
+        }
+
+        .output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .output::-webkit-scrollbar-track {
+            background: var(--bg-card);
+        }
+
+        .output::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .quick-btn {
+            padding: 0.8rem;
+            font-size: 0.9rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+
+        .quick-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--secondary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-top: 3rem;
+        }
+
+        .connection-form {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        .player-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .player-item {
+            background: var(--bg-dark);
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.7rem;
+            background: var(--primary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge.vip {
+            background: var(--warning);
+        }
+
+        .badge.admin {
+            background: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CS2 RCON DASHBOARD</h1>
+            <p class="subtitle">Server Management & Control Panel</p>
+        </header>
+
+        <div class="connection-form">
+            <h2 class="card-title">🔌 RCON Connection</h2>
+            <div class="input-group">
+                <label>Server IP</label>
+                <input type="text" id="serverIp" placeholder="127.0.0.1" value="127.0.0.1">
+            </div>
+            <div class="input-group">
+                <label>RCON Port</label>
+                <input type="text" id="rconPort" placeholder="27015" value="27015">
+            </div>
+            <div class="input-group">
+                <label>RCON Password</label>
+                <input type="password" id="rconPassword" placeholder="your_rcon_password">
+            </div>
+            <button onclick="connectRCON()" class="btn-secondary">CONNECT TO SERVER</button>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot disconnected" id="statusDot"></div>
+                <span id="statusText">Disconnected</span>
+            </div>
+            <div class="status-item">
+                <span>Server: <strong id="serverName">N/A</strong></span>
+            </div>
+            <div class="status-item">
+                <span>Players: <strong id="playerCount">0/0</strong></span>
+            </div>
+            <div class="status-item">
+                <span>Map: <strong id="currentMap">N/A</strong></span>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2 class="card-title">👑 VIP Management</h2>
+                <div class="input-group">
+                    <label>Steam ID</label>
+                    <input type="text" id="vipSteamId" placeholder="STEAM_0:0:12345678">
+                </div>
+                <div class="input-group">
+                    <label>Duration (days)</label>
+                    <input type="number" id="vipDuration" value="30" min="1">
+                </div>
+                <div class="input-group">
+                    <label>VIP Type</label>
+                    <select id="vipType">
+                        <option value="">Default</option>
+                        <option value="Basic">Basic</option>
+                        <option value="Silver">Silver</option>
+                        <option value="Gold">Gold</option>
+                        <option value="Platinum">Platinum</option>
+                        <option value="NightVip">NightVip</option>
+                    </select>
+                </div>
+                <button onclick="giveVIP()">GRANT VIP</button>
+                <button onclick="removeVIP()" style="margin-top: 0.5rem; background: linear-gradient(135deg, #666, #444);">REMOVE VIP</button>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">⚡ Admin Management</h2>
+                <div class="input-group">
+                    <label>Steam ID</label>
+                    <input type="text" id="adminSteamId" placeholder="STEAM_0:0:12345678">
+                </div>
+                <div class="input-group">
+                    <label>Admin Level</label>
+                    <select id="adminLevel">
+                        <option value="1">Moderator</option>
+                        <option value="2">Admin</option>
+                        <option value="3">Head Admin</option>
+                        <option value="99">Root</option>
+                    </select>
+                </div>
+                <button onclick="giveAdmin()">GRANT ADMIN</button>
+                <button onclick="removeAdmin()" style="margin-top: 0.5rem; background: linear-gradient(135deg, #666, #444);">REMOVE ADMIN</button>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">🎮 Player Actions</h2>
+                <div class="input-group">
+                    <label>Player Name/ID</label>
+                    <input type="text" id="playerTarget" placeholder="Player name or Steam ID">
+                </div>
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="kickPlayer()">KICK</button>
+                    <button class="quick-btn" onclick="banPlayer()">BAN</button>
+                    <button class="quick-btn" onclick="slayPlayer()">SLAY</button>
+                    <button class="quick-btn" onclick="mutePlayer()">MUTE</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">🏆 Rank / Premier Points</h2>
+                <div class="input-group">
+                    <label>Steam ID</label>
+                    <input type="text" id="rankSteamId" placeholder="STEAM_0:0:12345678">
+                </div>
+                <div class="input-group">
+                    <label>Points</label>
+                    <input type="number" id="rankPoints" value="100" min="1">
+                </div>
+                <button onclick="addRankPoints()" class="btn-success">ADD POINTS</button>
+            </div>
+            <div class="card">
+                <h2 class="card-title">🗺️ Server Control</h2>
+                <div class="input-group">
+                    <label>Map Name</label>
+                    <input type="text" id="mapName" placeholder="de_dust2">
+                </div>
+                <button onclick="changeMap()" class="btn-success">CHANGE MAP</button>
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="restartGame()">RESTART</button>
+                    <button class="quick-btn" onclick="pauseGame()">PAUSE</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">💬 Server Message</h2>
+                <div class="input-group">
+                    <label>Message</label>
+                    <input type="text" id="serverMessage" placeholder="Your message here...">
+                </div>
+                <button onclick="sendMessage()">SEND TO ALL</button>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">⚙️ Custom RCON</h2>
+                <div class="input-group">
+                    <label>RCON Command</label>
+                    <input type="text" id="customCommand" placeholder="status">
+                </div>
+                <button onclick="executeCommand()">EXECUTE</button>
+            </div>
+        </div>
+
+        <div class="card" style="max-width: 100%;">
+            <h2 class="card-title">📊 Console Output</h2>
+            <div class="output" id="consoleOutput">Waiting for connection...</div>
+            <button onclick="clearConsole()" style="margin-top: 1rem; background: linear-gradient(135deg, #666, #444); padding: 0.7rem;">CLEAR CONSOLE</button>
+        </div>
+
+        <footer>
+            <p>CS2 RCON Dashboard v1.0 | Made with ❤️ for Counter-Strike 2 Servers</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">⚠️ Remember to configure your RCON settings in server.cfg</p>
+        </footer>
+    </div>
+
+    <script>
+        let isConnected = false;
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4655' : type === 'success' ? '#00ff88' : '#00d4ff';
+            output.innerHTML += `<div style="color: ${color}; margin-bottom: 5px;">[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        async function sendRconCommand(command) {
+            if (!command) {
+                log('ERROR: Command cannot be empty!', 'error');
+                return null;
+            }
+
+            const ip = document.getElementById('serverIp')?.value || '';
+            const port = document.getElementById('rconPort')?.value || '';
+            const password = document.getElementById('rconPassword')?.value || '';
+
+            try {
+                const response = await fetch('/api/rcon', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ command, host: ip, port, password })
+                });
+
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    data = null;
+                }
+
+                if (!response.ok) {
+                    const message = data && data.error ? data.error : `HTTP ${response.status}`;
+                    log(`RCON ERROR: ${message}`, 'error');
+                    return null;
+                }
+
+                if (data && data.ok === false) {
+                    const message = data.error || 'Unknown RCON error';
+                    log(`RCON ERROR: ${message}`, 'error');
+                    return null;
+                }
+
+                const text = data && typeof data.response === 'string' ? data.response : '';
+                if (text && text.trim().length > 0) {
+                    log(text);
+                }
+
+                return text;
+            } catch (error) {
+                log(`RCON request failed: ${error}`, 'error');
+                return null;
+            }
+        }
+
+        function isErrorResponse(text) {
+            if (text === null) return true;
+            const t = String(text || '').toLowerCase();
+            if (t.length === 0) return false;
+            const patterns = ['unknown command', 'not found', 'invalid', 'usage:', 'error', 'unknown'];
+            return patterns.some(p => t.includes(p));
+        }
+
+        async function runFirstWorking(candidates, params) {
+            const saved = JSON.parse(localStorage.getItem('commandAliases') || '{}');
+            if (saved && saved[candidates.key]) {
+                const cmd = candidates.build(saved[candidates.key], params);
+                const res = await sendRconCommand(cmd);
+                if (!isErrorResponse(res)) {
+                    return { alias: saved[candidates.key], response: res };
+                }
+            }
+
+            for (const alias of candidates.list) {
+                const cmd = candidates.build(alias, params);
+                const res = await sendRconCommand(cmd);
+                if (!isErrorResponse(res)) {
+                    const current = JSON.parse(localStorage.getItem('commandAliases') || '{}');
+                    current[candidates.key] = alias;
+                    localStorage.setItem('commandAliases', JSON.stringify(current));
+                    return { alias, response: res };
+                }
+            }
+            return { alias: null, response: null };
+        }
+
+        const VIP_ADD = {
+            key: 'vip_add',
+            list: ['sm_addvip', 'css_vip_add', 'vip_add'],
+            build: (alias, p) => `${alias} ${p.steamId} ${p.duration}`
+        };
+        const VIP_ADD_WITH_TYPE = {
+            key: 'vip_add_type',
+            list: ['sm_addvip', 'css_vip_add', 'vip_add'],
+            build: (alias, p) => p.type && p.type.length > 0 ? `${alias} ${p.steamId} ${p.duration} ${p.type}` : `${alias} ${p.steamId} ${p.duration}`
+        };
+        const VIP_REMOVE = {
+            key: 'vip_remove',
+            list: ['sm_removevip', 'css_vip_remove', 'vip_remove'],
+            build: (alias, p) => `${alias} ${p.steamId}`
+        };
+        const ADMIN_ADD = {
+            key: 'admin_add',
+            list: ['sm_addadmin', 'sa_addadmin', 'css_admin_add', 'admin_add'],
+            build: (alias, p) => `${alias} ${p.steamId} ${p.level}`
+        };
+        const ADMIN_REMOVE = {
+            key: 'admin_remove',
+            list: ['sm_removeadmin', 'sa_removeadmin', 'css_admin_remove', 'admin_remove'],
+            build: (alias, p) => `${alias} ${p.steamId}`
+        };
+        const KICK = {
+            key: 'kick',
+            list: ['sm_kick', 'sa_kick', 'kick'],
+            build: (alias, p) => `${alias} "${p.target}"`
+        };
+        const BAN = {
+            key: 'ban',
+            list: ['sm_ban', 'sa_ban', 'ban'],
+            build: (alias, p) => `${alias} "${p.target}" ${p.minutes} "${p.reason}"`
+        };
+        const SLAY = {
+            key: 'slay',
+            list: ['sm_slay', 'sa_slay'],
+            build: (alias, p) => `${alias} "${p.target}"`
+        };
+        const MUTE = {
+            key: 'mute',
+            list: ['sm_mute', 'sa_mute', 'sm_silence', 'sa_silence'],
+            build: (alias, p) => `${alias} "${p.target}"`
+        };
+        const RANK_ADD_POINTS = {
+            key: 'rank_add_points',
+            list: ['ranks_addpoints', 'rank_addpoints', 'css_ranks_addpoints', 'css_rank_add', 'sa_rank_addpoints'],
+            build: (alias, p) => `${alias} ${p.steamId} ${p.points}`
+        };
+
+        function ensureConnected() {
+            if (!isConnected) {
+                log('ERROR: You must connect to the server first!', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        async function connectRCON() {
+            const ip = document.getElementById('serverIp').value;
+            const port = document.getElementById('rconPort').value;
+            const password = document.getElementById('rconPassword').value;
+
+            if (!password) {
+                log('ERROR: RCON password is required!', 'error');
+                return;
+            }
+
+            log(`Connecting to ${ip}:${port}...`);
+
+            const statusResponse = await sendRconCommand('status');
+
+            if (statusResponse === null) {
+                log('Failed to connect to RCON backend.', 'error');
+                return;
+            }
+
+            isConnected = true;
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            if (statusDot) {
+                statusDot.classList.remove('disconnected');
+            }
+            if (statusText) {
+                statusText.textContent = 'Connected';
+            }
+
+            log('Successfully connected to RCON!', 'success');
+            log('Server ready for commands.', 'success');
+        }
+
+        async function giveVIP() {
+            const steamId = document.getElementById('vipSteamId').value;
+            const duration = document.getElementById('vipDuration').value;
+            const type = document.getElementById('vipType').value;
+            
+            if (!steamId) {
+                log('ERROR: Steam ID is required!', 'error');
+                return;
+            }
+            
+            log(`Granting VIP to ${steamId} for ${duration} days...`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            let result = await runFirstWorking(VIP_ADD_WITH_TYPE, { steamId, duration, type });
+            if (result.response === null) {
+                result = await runFirstWorking(VIP_ADD, { steamId, duration });
+            }
+            const { alias, response } = result;
+            if (response !== null) {
+                log(`VIP granted successfully to ${steamId}!`, 'success');
+                if (alias) log(`Using alias: ${alias}`);
+            }
+        }
+
+        async function removeVIP() {
+            const steamId = document.getElementById('vipSteamId').value;
+            if (!steamId) {
+                log('ERROR: Steam ID is required!', 'error');
+                return;
+            }
+            log(`Removing VIP from ${steamId}...`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const { alias, response } = await runFirstWorking(VIP_REMOVE, { steamId });
+            if (response !== null) {
+                log(`VIP removed from ${steamId}!`, 'success');
+                if (alias) log(`Using alias: ${alias}`);
+            }
+        }
+
+        async function giveAdmin() {
+            const steamId = document.getElementById('adminSteamId').value;
+            const level = document.getElementById('adminLevel').value;
+            
+            if (!steamId) {
+                log('ERROR: Steam ID is required!', 'error');
+                return;
+            }
+            
+            log(`Granting admin level ${level} to ${steamId}...`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const { alias, response } = await runFirstWorking(ADMIN_ADD, { steamId, level });
+            if (response !== null) {
+                log(`Admin privileges granted to ${steamId}!`, 'success');
+                if (alias) log(`Using alias: ${alias}`);
+            }
+        }
+
+        async function removeAdmin() {
+            const steamId = document.getElementById('adminSteamId').value;
+            if (!steamId) {
+                log('ERROR: Steam ID is required!', 'error');
+                return;
+            }
+            log(`Removing admin from ${steamId}...`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const { alias, response } = await runFirstWorking(ADMIN_REMOVE, { steamId });
+            if (response !== null) {
+                log(`Admin removed from ${steamId}!`, 'success');
+                if (alias) log(`Using alias: ${alias}`);
+            }
+        }
+
+        async function kickPlayer() {
+            const target = document.getElementById('playerTarget').value;
+            if (!target) {
+                log('ERROR: Player name/ID is required!', 'error');
+                return;
+            }
+            log(`Kicking player: ${target}...`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const { alias, response } = await runFirstWorking(KICK, { target });
+            if (response !== null) {
+                log(`Player ${target} has been kicked!`, 'success');
+                if (alias) log(`Using alias: ${alias}`);
+            }
+        }
+
+        async function banPlayer() {
+            const target = document.getElementById('playerTarget').value;
+            if (!target) {
+                log('ERROR: Player name/ID is required!', 'error');
+                return;
+            }
+            log(`Banning player: ${target}...`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const { alias, response } = await runFirstWorking(BAN, { target, minutes: 0, reason: 'Banned from web panel' });
+            if (response !== null) {
+                log(`Player ${target} has been banned!`, 'success');
+                if (alias) log(`Using alias: ${alias}`);
+            }
+        }
+
+        async function slayPlayer() {
+            const target = document.getElementById('playerTarget').value;
+            if (!target) {
+                log('ERROR: Player name/ID is required!', 'error');
+                return;
+            }
+            log(`Slaying player: ${target}...`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const { alias, response } = await runFirstWorking(SLAY, { target });
+            if (response !== null) {
+                log(`Player ${target} has been slain!`, 'success');
+                if (alias) log(`Using alias: ${alias}`);
+            }
+        }
+
+        async function mutePlayer() {
+            const target = document.getElementById('playerTarget').value;
+            if (!target) {
+                log('ERROR: Player name/ID is required!', 'error');
+                return;
+            }
+            log(`Muting player: ${target}...`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const { alias, response } = await runFirstWorking(MUTE, { target });
+            if (response !== null) {
+                log(`Player ${target} has been muted!`, 'success');
+                if (alias) log(`Using alias: ${alias}`);
+            }
+        }
+
+        async function changeMap() {
+            const map = document.getElementById('mapName').value;
+            if (!map) {
+                log('ERROR: Map name is required!', 'error');
+                return;
+            }
+            log(`Changing map to ${map}...`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const cmd = `changelevel ${map}`;
+            const response = await sendRconCommand(cmd);
+            if (response !== null) {
+                const currentMap = document.getElementById('currentMap');
+                if (currentMap) {
+                    currentMap.textContent = map;
+                }
+                log(`Map changed to ${map}!`, 'success');
+            }
+        }
+
+        async function restartGame() {
+            log('Restarting game...');
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const cmd = 'mp_restartgame 1';
+            const response = await sendRconCommand(cmd);
+            if (response !== null) {
+                log('Game restarted!', 'success');
+            }
+        }
+
+        async function pauseGame() {
+            log('Pausing game...');
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const cmd = 'mp_pause_match';
+            const response = await sendRconCommand(cmd);
+            if (response !== null) {
+                log('Game paused!', 'success');
+            }
+        }
+
+        async function sendMessage() {
+            const msg = document.getElementById('serverMessage').value;
+            if (!msg) {
+                log('ERROR: Message cannot be empty!', 'error');
+                return;
+            }
+            log(`Sending message: "${msg}"`);
+            if (!ensureConnected()) {
+                return;
+            }
+
+            const cmd = `say ${msg}`;
+            const response = await sendRconCommand(cmd);
+            if (response !== null) {
+                log('Message sent to all players!', 'success');
+            }
+        }
+
+        async function addRankPoints() {
+            const steamId = document.getElementById('rankSteamId').value;
+            const points = document.getElementById('rankPoints').value;
+            if (!steamId) {
+                log('ERROR: Steam ID is required!', 'error');
+                return;
+            }
+            if (!points || Number(points) <= 0) {
+                log('ERROR: Points must be greater than 0!', 'error');
+                return;
+            }
+            if (!ensureConnected()) {
+                return;
+            }
+            log(`Adding ${points} points to ${steamId}...`);
+            const { alias, response } = await runFirstWorking(RANK_ADD_POINTS, { steamId, points });
+            if (response !== null) {
+                log(`Points added successfully to ${steamId}!`, 'success');
+                if (alias) log(`Using alias: ${alias}`);
+            }
+        }
+
+        async function executeCommand() {
+            const cmd = document.getElementById('customCommand').value;
+            if (!cmd) {
+                log('ERROR: Command cannot be empty!', 'error');
+                return;
+            }
+            if (!isConnected) {
+                log('ERROR: You must connect to the server first!', 'error');
+                return;
+            }
+            log(`Executing: ${cmd}`);
+            const response = await sendRconCommand(cmd);
+            if (response !== null) {
+                log('Command executed successfully.', 'success');
+            }
+        }
+
+        function clearConsole() {
+            document.getElementById('consoleOutput').innerHTML = '';
+            log('Console cleared.', 'success');
+        }
+
+        // Log inițial
+        log('CS2 RCON Dashboard initialized.');
+        log('Please connect to your server using the connection form above.');
+    </script>
+</body>
+</html>

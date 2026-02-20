@@ -1,0 +1,53 @@
+# CS2 Server Files
+*.log
+*.dem
+*.bsp
+*.nav
+*.ain
+
+# Config files cu parole
+*password*
+*secret*
+server.cfg
+
+# Node modules (dacă vei adăuga backend Node.js)
+node_modules/
+package-lock.json
+
+# Python (dacă vei adăuga scripturi Python)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Database (dacă vei adăuga)
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+
+# Temporary files
+tmp/
+temp/
+*.tmp
